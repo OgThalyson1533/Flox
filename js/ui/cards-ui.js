@@ -46,45 +46,66 @@ export function renderCards() {
     const flagIcons = { visa: 'VISA', mastercard: 'MC', elo: 'ELO', amex: 'AMEX', hipercard: 'HIPER' };
     const linkedBank = state.banks?.find(b => b.id === card.bank_id);
     return `
-      <div class="glass-panel card-hover rounded-[28px] p-6 relative overflow-hidden cursor-pointer ${_activeCardId === card.id ? 'ring-2 ring-cyan-400/40' : ''}" onclick="selectCard('${card.id}')">
-        <div class="absolute inset-0 opacity-10" style="background:radial-gradient(circle at 80% 20%, ${color}, transparent 70%)"></div>
-        <div class="relative">
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black text-white" style="background:${color}">${flagIcons[card.flag] || 'CARD'}</div>
-              <div>
-                <p class="font-bold text-white text-sm">${escapeHtml(card.name)}</p>
-                <p class="text-xs text-white/45">
-                  <span style="color:#c4b5fd">● Crédito</span>
-                  ${card.closing ? ` • Fecha dia ${card.closing} • Vence dia ${card.due}` : ''}
-                  ${linkedBank ? ` • <span class="text-cyan-300/70">${escapeHtml(linkedBank.name)}</span>` : ''}
-                </p>
-              </div>
+      <div class="glass-panel rounded-[24px] border border-white/10 p-6 relative overflow-hidden cursor-pointer flex flex-col justify-between ${_activeCardId === card.id ? 'ring-2 ring-cyan-400/50' : ''}" style="min-height:360px;background:rgba(255,255,255,0.02)" onclick="selectCard('${card.id}')">
+        <div class="absolute inset-0 opacity-5" style="background:radial-gradient(circle at 100% 0%, ${color}, transparent 60%)"></div>
+
+        <div class="relative flex-1">
+          <!-- Header -->
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <h3 class="text-xl font-bold text-white tracking-tight">${escapeHtml(card.name)}</h3>
+              <p class="text-[11px] font-medium text-white/40 mt-0.5">${card.flag}</p>
             </div>
-            <div class="flex gap-1">
-              <button onclick="event.stopPropagation();openEditCard('${card.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-cyan-400/70 hover:bg-cyan-400/10 transition-colors"><i class="fa-solid fa-pen text-xs"></i></button>
-              <button onclick="event.stopPropagation();deleteCard('${card.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-rose-400/60 hover:bg-rose-400/10 transition-colors"><i class="fa-solid fa-trash-can text-xs"></i></button>
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center opacity-80" style="background:${color}15;border:1px solid ${color}30">
+              <i class="fa-solid fa-credit-card text-[13px]" style="color:${color}"></i>
             </div>
           </div>
-          <div class="space-y-3">
-            <div class="flex justify-between text-sm">
-              <span class="text-white/55">${card.cardType === 'debito' ? 'Utilizado (débito)' : 'Fatura atual'}</span>
-              <span class="font-bold text-white">${formatMoney(card.used)}</span>
+
+          <!-- Limit Usage -->
+          <div class="mb-4">
+            <div class="flex justify-between text-[11px] font-semibold text-white/45 mb-1.5">
+              <span>Uso do limite</span>
+              <span class="text-white">${formatPercent(usedPct, 0)}</span>
             </div>
-            ${card.cardType !== 'debito' ? `
-            <div class="progress-track">
-              <div class="progress-fill" style="width:${usedPct}%;background:linear-gradient(90deg,${color},${statusColor})"></div>
-            </div>` : ''}
-            <div class="flex justify-between text-xs text-white/45">
-              <span>${card.cardType === 'debito' ? '' : `${formatPercent(usedPct, 0)} do limite`}</span>
-              <span>${card.cardType === 'debito' ? `Saldo inicial ${formatMoney(available)}` : `Disponível ${formatMoney(available)}`}</span>
-            </div>
-            <div class="flex gap-2 mt-2">
-              <button onclick="event.stopPropagation();selectCard('${card.id}')" class="w-full rounded-xl py-2.5 text-xs font-bold text-black transition-opacity hover:opacity-90" style="background:linear-gradient(135deg,${color},${statusColor})">
-                <i class="fa-solid fa-receipt mr-1.5"></i>${card.cardType === 'debito' ? 'Ver lançamentos' : 'Ver fatura'}
-              </button>
+            <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500" style="width:${usedPct}%;background:linear-gradient(90deg,${color},${statusColor})"></div>
             </div>
           </div>
+
+          <!-- Blocks Disponível / Utilizado -->
+          <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-colors">
+              <p class="text-[10px] font-semibold text-white/45 mb-1">Disponível</p>
+              <p class="text-[15px] font-bold text-emerald-400">${formatMoney(available)}</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-colors">
+              <p class="text-[10px] font-semibold text-white/45 mb-1">Utilizado</p>
+              <p class="text-[15px] font-bold text-white">${formatMoney(card.used)}</p>
+            </div>
+          </div>
+
+          <!-- Faturas (6 meses) mock -->
+          <div class="mb-4">
+            <div class="flex justify-between text-[11px] font-semibold text-white/45 mb-2">
+              <span>Faturas (6 meses)</span>
+              <span class="text-white font-bold">${formatMoney(card.used)}</span>
+            </div>
+            <div class="w-full h-px bg-[#37bf8b]/60 mt-8 mb-2 relative">
+               <div class="absolute bottom-1.5 inset-x-0 flex justify-between text-[9px] text-white/30 font-semibold px-1">
+                 <span>Nov</span><span>Dez</span><span>Jan</span><span>Fev</span><span>Mar</span>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/5 relative z-10">
+          <button onclick="event.stopPropagation();openEditCard('${card.id}')" class="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+            <i class="fa-solid fa-pen text-[9px]"></i> Editar
+          </button>
+          <button onclick="event.stopPropagation();deleteCard('${card.id}')" class="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all">
+            <i class="fa-solid fa-trash-can text-[9px]"></i> Excluir
+          </button>
         </div>
       </div>`;
   }).join('');

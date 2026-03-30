@@ -1572,117 +1572,115 @@
         </button>
       </div>
 
-      <!-- ── Tipo: Abas Entrada / Saída (logo abaixo do cabeçalho) ── -->
-      <div class="px-6 pt-4 pb-0">
-        <div class="tx-type-tabs" id="tx-type-tabs">
-          <button type="button" class="tx-type-tab tx-type-tab--entrada" data-type="entrada" id="tx-tab-entrada">
+      <!-- ── Tipo: Abas Entrada / Saída / Transferência ── -->
+      <div class="px-6 pt-5 pb-2">
+        <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2 block">Tipo *</label>
+        <div class="grid grid-cols-3 gap-2" id="tx-type-tabs">
+          <button type="button" class="tx-type-tab tx-type-tab--entrada flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-[11px] font-semibold text-white/60 transition-all" data-type="entrada" id="tx-tab-entrada">
             <i class="fa-solid fa-arrow-down-to-line"></i> Entrada
           </button>
-          <button type="button" class="tx-type-tab tx-type-tab--saida active" data-type="saida" id="tx-tab-saida">
+          <button type="button" class="tx-type-tab tx-type-tab--saida active flex items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2.5 text-[11px] font-semibold text-rose-400 transition-all" data-type="saida" id="tx-tab-saida">
             <i class="fa-solid fa-arrow-up-from-line"></i> Saída
+          </button>
+          <button type="button" class="tx-type-tab tx-type-tab--transferencia flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-[11px] font-semibold text-white/60 transition-all" data-type="transferencia" id="tx-tab-transferencia">
+            <i class="fa-solid fa-right-left"></i> Transf.
           </button>
         </div>
         <!-- Hidden select mantido para compatibilidade com JS existente -->
         <select id="tx-modal-type" class="hidden">
           <option value="saida" selected>Saída</option>
           <option value="entrada">Entrada</option>
+          <option value="transferencia">Transferência</option>
         </select>
       </div>
 
-      <div class="px-6 py-5 flex flex-col gap-4" style="max-height:72vh;overflow-y:auto">
-        <!-- Date with date picker -->
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-widest text-white/40">Data</label>
-          <div class="tx-date-wrapper">
-            <input id="tx-modal-date" type="text" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric"
-                   autocomplete="off"
-                   class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white outline-none focus:border-cyan-400/50 focus:bg-white/8 transition-colors placeholder:text-white/25 w-full"/>
-            <button type="button" id="tx-date-picker-btn" class="tx-date-picker-btn" title="Abrir calendário">
-              <i class="fa-regular fa-calendar"></i>
-            </button>
-            <!-- Native date input hidden — drives the picker -->
-            <input type="date" id="tx-modal-date-native" class="tx-date-native" />
+      <div class="px-6 py-4 flex flex-col gap-4" style="max-height:68vh;overflow-y:auto">
+        <!-- Fingu Grid Mapeamento -->
+        
+        <!-- ROW 1: Conta/Cartão & Valor -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1 w-full relative">
+            <div id="tx-bank-selector-row" class="flex flex-col gap-1 w-full">
+              <label id="tx-bank-selector-label" class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Conta *</label>
+              <select id="tx-modal-bank" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full" style="background-color:rgba(255,255,255,.02)">
+                <option value="">Selecione uma conta</option>
+              </select>
+            </div>
+            <div id="tx-card-selector-row" class="hidden flex-col gap-1 w-full absolute inset-0 bg-[#0f1829] z-10">
+              <label id="tx-card-selector-label" class="text-[11px] font-semibold uppercase tracking-widest text-cyan-400/80">Cartão de Crédito *</label>
+              <select id="tx-modal-card" class="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3 py-3 text-sm font-semibold text-white outline-none focus:border-cyan-400/50 transition-colors w-full" style="background-color:rgba(0,245,255,.08)">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1 w-full">
+            <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Valor *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm font-bold">R$</span>
+              <input id="tx-modal-value" type="text" placeholder="0,00" class="rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400/50 transition-colors w-full"/>
+            </div>
           </div>
         </div>
-        <!-- Description -->
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-widest text-white/40">Descrição</label>
-          <input id="tx-modal-desc" type="text" placeholder="Ex: Supermercado Extra"
-                 class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/50 focus:bg-white/8 transition-colors placeholder:text-white/25"/>
-        </div>
-        <!-- Category -->
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-widest text-white/40">Categoria</label>
-          <select id="tx-modal-cat"
-                  class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors"
-                  style="background-color:rgba(255,255,255,.05)">
-            <!-- Populado dinamicamente por transactions-ui.js (inclui categorias customizadas) -->
-            <option value="Alimentação">Alimentação</option>
+
+        <!-- ROW Extra GrokFin: Forma de pagamento (agora ocupa a linha toda) -->
+        <div id="tx-payment-section" class="flex flex-col gap-1 w-full mt-1 mb-2">
+          <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Forma de Pagamento</label>
+          <select id="tx-modal-payment" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full" style="background-color:rgba(255,255,255,.02)">
+            <option value="" disabled selected>Opcional (Pix, Dinheiro, Cartão...)</option>
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao_credito">Cartão de Crédito</option>
+            <option value="cartao_debito">Cartão de Débito</option>
+            <option value="conta">Transferência</option>
+            <option value="boleto">Boleto</option>
           </select>
         </div>
-        <!-- Value (full width, since type moved to tabs) -->
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold uppercase tracking-widest text-white/40">Valor (R$)</label>
-          <input id="tx-modal-value" type="text" placeholder="0,00"
-                 class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/50 focus:bg-white/8 transition-colors placeholder:text-white/25"/>
+
+        <!-- ROW 2: Descrição & Categoria -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1 w-full">
+            <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Descrição *</label>
+            <input id="tx-modal-desc" type="text" placeholder="Ex: Pagamento fornecedor" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full"/>
+          </div>
+          <div class="flex flex-col gap-1 w-full">
+            <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40 flex justify-between">Categoria * <i class="fa-solid fa-wand-magic-sparkles text-emerald-400" title="Auto-categorização ativa"></i></label>
+            <select id="tx-modal-cat" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full" style="background-color:rgba(255,255,255,.02)">
+              <option value="Alimentação">Alimentação</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Payment method — shown only for Saída -->
-        <div id="tx-payment-section" class="flex flex-col gap-3">
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-semibold uppercase tracking-widest text-white/40">Forma de pagamento</label>
-            <select id="tx-modal-payment"
-                    class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors"
-                    style="background-color:rgba(255,255,255,.05)">
-              <option value="" disabled selected>Selecione a forma de pagamento</option>
-              <option value="pix">Pix</option>
-              <option value="dinheiro">Dinheiro / Espécie</option>
-              <option value="cartao_credito">Cartão de crédito</option>
-              <option value="cartao_debito">Cartão de débito</option>
-              <option value="conta">Transferência / TED</option>
-              <option value="boleto">Boleto bancário</option>
-            </select>
-          </div>
-          <!-- Bank selector — shown by default for "Bank" transactions -->
-          <div id="tx-bank-selector-row" class="flex-col gap-1 w-full">
-            <label id="tx-bank-selector-label" class="text-xs font-semibold uppercase tracking-widest text-white/40">Conta Vinculada</label>
-            <select id="tx-modal-bank"
-                    class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors"
-                    style="background-color:rgba(255,255,255,.05)">
-              <option value="">Selecione um banco...</option>
-            </select>
-          </div>
-          
-          <!-- Card selector — only shows when cartao is selected -->
-          <div id="tx-card-selector-row" class="hidden flex-col gap-1 w-full">
-            <label id="tx-card-selector-label" class="text-xs font-semibold uppercase tracking-widest text-white/40">Cartão de crédito</label>
-            <select id="tx-modal-card"
-                    class="rounded-2xl border border-cyan-400/25 bg-cyan-400/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors"
-                    style="background-color:rgba(0,245,255,.05)">
-              <option value="">Selecione um cartão...</option>
-            </select>
-            <p id="tx-card-hint" class="text-xs text-cyan-300/60 px-1"><i class="fa-solid fa-circle-info mr-1"></i>O lançamento será adicionado à fatura do cartão.</p>
-          </div>
+        <!-- ROW 3: Contato -->
+        <div class="flex flex-col gap-1 w-full">
+          <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Contato</label>
+          <input id="tx-modal-contact" type="text" placeholder="Contato (opcional)" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full"/>
         </div>
-        
-        <div class="grid grid-cols-2 gap-3" id="tx-fingu-fields-row">
-          <!-- Paid Toggle (Mudar o visual pra botão ou toggle) -->
-          <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
-            <div class="flex flex-col">
-              <span class="text-sm font-semibold text-white/80">Pago</span>
-              <span class="text-[10px] text-white/50">Baixa no caixa</span>
+
+        <!-- ROW 4: Datas -->
+        <div class="grid grid-cols-2 gap-4 w-full">
+          <div class="flex flex-col gap-1 w-full">
+            <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Data Competência</label>
+            <div class="relative flex items-center tx-date-wrapper">
+              <input id="tx-modal-date" type="text" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" autocomplete="off" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full"/>
+              <button type="button" id="tx-date-picker-btn" class="absolute right-3 text-white/40 hover:text-white transition-colors tx-date-picker-btn"><i class="fa-regular fa-calendar"></i></button>
+              <input type="date" id="tx-modal-date-native" class="opacity-0 absolute inset-0 pointer-events-none tx-date-native" />
             </div>
-            <label class="relative cursor-pointer">
-              <input type="checkbox" id="tx-modal-is-paid" class="sr-only peer" checked>
-              <div class="w-9 h-5 rounded-full border border-white/15 bg-white/10 peer-checked:bg-[#37bf8b] transition-all after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-4"></div>
-            </label>
           </div>
+          <div class="flex flex-col gap-1 w-full">
+            <label class="text-[11px] font-semibold uppercase tracking-widest text-white/40">Data Vencimento</label>
+            <div class="relative flex items-center">
+              <input type="date" id="tx-modal-due-date" class="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors w-full" style="color-scheme:dark"/>
+            </div>
+          </div>
+        </div>
 
-          <!-- Due Date -->
-          <div class="flex flex-col gap-1 justify-center rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
-            <label class="text-[10px] font-semibold uppercase tracking-widest text-white/40">Vencimento</label>
-            <input type="date" id="tx-modal-due-date" class="bg-transparent text-sm text-white outline-none" style="color-scheme:dark"/>
-          </div>
+        <!-- ROW 5: Pagamento Realizado -->
+        <div class="flex items-center gap-3 mt-1 pb-2 border-b border-white/5">
+          <label class="relative cursor-pointer flex items-center gap-3">
+            <input type="checkbox" id="tx-modal-is-paid" class="sr-only peer" checked>
+            <div class="w-10 h-6 rounded-full border border-white/15 bg-white/10 peer-checked:bg-[#37bf8b] transition-all after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:transition-all peer-checked:after:translate-x-4"></div>
+            <span class="text-sm font-semibold text-white/90">Pagamento Realizado</span>
+          </label>
         </div>
 
         <!-- Recurring toggle -->

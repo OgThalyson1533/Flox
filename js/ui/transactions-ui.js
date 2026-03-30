@@ -551,8 +551,17 @@ export function openTxModal() {
   const typeSwitchBtn = document.getElementById('tx-modal-type');
   if (typeSwitchBtn) {
     typeSwitchBtn.value = 'saida';
-    // Removemos o 'isIncome' automático da transação nova para manter padrão de Fingu
   }
+
+  // Reset visual tabs to saida (Fingu style)
+  document.querySelectorAll('#tx-type-tabs button').forEach(b => {
+    b.classList.remove('active', 'border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-rose-500/30', 'bg-rose-500/10', 'text-rose-400', 'border-cyan-500/30', 'bg-cyan-500/10', 'text-cyan-400');
+    b.classList.add('border-white/10', 'bg-white/5', 'text-white/60');
+    if (b.dataset.type === 'saida') {
+      b.classList.add('active', 'border-rose-500/30', 'bg-rose-500/10', 'text-rose-400');
+      b.classList.remove('border-white/10', 'bg-white/5', 'text-white/60');
+    }
+  });
 
   const dueDate = document.getElementById('tx-modal-due-date');
   if (dueDate) dueDate.value = '';
@@ -578,9 +587,20 @@ export function openEditTx(id) {
   const payment = document.getElementById('tx-modal-payment');
   if (payment) payment.value = tx.payment || 'conta';
   
-  const isIncome = tx.value > 0;
   const typeSelect = document.getElementById('tx-modal-type');
   if (typeSelect) typeSelect.value = isIncome ? 'entrada' : 'saida';
+
+  // Toggle visual tabs in modal Fingu
+  document.querySelectorAll('#tx-type-tabs button').forEach(b => {
+    b.classList.remove('active', 'border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-rose-500/30', 'bg-rose-500/10', 'text-rose-400', 'border-cyan-500/30', 'bg-cyan-500/10', 'text-cyan-400');
+    b.classList.add('border-white/10', 'bg-white/5', 'text-white/60');
+    if (b.dataset.type === (isIncome ? 'entrada' : 'saida')) {
+      b.classList.add('active');
+      b.classList.remove('border-white/10', 'bg-white/5', 'text-white/60');
+      if (isIncome) b.classList.add('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400');
+      else b.classList.add('border-rose-500/30', 'bg-rose-500/10', 'text-rose-400');
+    }
+  });
 
   const recCheck = document.getElementById('tx-modal-recurring');
   if (recCheck) recCheck.checked = !!tx.recurringTemplate;
@@ -792,6 +812,8 @@ export function saveTxModal() {
     errEl.textContent = 'Selecione a conta bancária vinculada.'; errEl.classList.remove('hidden'); return;
   }
 
+  // Fingu: suporte à transferência simples temporariamente salva como saída
+  const isTransfer = typeSelect && typeSelect.value === 'transferencia';
   const finalValue = isIncome ? rawValue : -rawValue;
   const installValue = Number((finalValue / installments).toFixed(2));
 
@@ -875,7 +897,7 @@ export function saveTxModal() {
         account_type: accountType,
         bank_id: bankId,
         due_date: dueDate,
-        transaction_type: isIncome ? 'entrada' : 'saida'
+        transaction_type: isTransfer ? 'transferencia' : (isIncome ? 'entrada' : 'saida')
       });
       if (isPast || installments === 1) {
         if (isPaid && accountType === 'bank') state.balance += installValue;
@@ -902,6 +924,27 @@ export function saveTxModal() {
 
 export function bindTxEvents() {
   const el = id => document.getElementById(id);
+
+  // Lógica Fingu das Abas do Modal
+  document.querySelectorAll('#tx-type-tabs button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // previne propagação pra forms
+      document.querySelectorAll('#tx-type-tabs button').forEach(b => {
+        b.classList.remove('active', 'border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-rose-500/30', 'bg-rose-500/10', 'text-rose-400', 'border-cyan-500/30', 'bg-cyan-500/10', 'text-cyan-400');
+        b.classList.add('border-white/10', 'bg-white/5', 'text-white/60');
+      });
+      const type = e.currentTarget.dataset.type;
+      e.currentTarget.classList.add('active');
+      e.currentTarget.classList.remove('border-white/10', 'bg-white/5', 'text-white/60');
+      
+      if (type === 'entrada') e.currentTarget.classList.add('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400');
+      if (type === 'saida') e.currentTarget.classList.add('border-rose-500/30', 'bg-rose-500/10', 'text-rose-400');
+      if (type === 'transferencia') e.currentTarget.classList.add('border-cyan-500/30', 'bg-cyan-500/10', 'text-cyan-400');
+      
+      const typeSelect = document.getElementById('tx-modal-type');
+      if (typeSelect) typeSelect.value = type;
+    });
+  });
 
   el('tx-filter-btn')?.addEventListener('click', () => { el('tx-filter-menu')?.classList.toggle('hidden'); });
   el('tx-filter-close')?.addEventListener('click', () => { el('tx-filter-menu')?.classList.add('hidden'); });

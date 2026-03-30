@@ -68,21 +68,33 @@ function getBalanceHistory(bankId) {
   });
 }
 
-/** Renderiza mini SVG sparkline */
-function sparkline(history, color) {
+/** Renderiza mini SVG sparkline preenchido (Estilo Fingu) */
+function sparklineFilled(history, color) {
   if (!history.length) return '';
   const vals = history.map(h => h.value);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   const range = max - min || 1;
-  const W = 100, H = 28;
-  const points = vals.map((v, i) => {
+  const W = 300, H = 50;
+  
+  const coords = vals.map((v, i) => {
     const x = (i / (vals.length - 1)) * W;
-    const y = H - ((v - min) / range) * H;
+    const y = H - ((v - min) / range) * H * 0.8 - 4; // Deixa respiro pra label/linha
     return `${x},${y}`;
-  }).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" class="w-full h-7" preserveAspectRatio="none">
-    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" opacity="0.7"/>
+  });
+  
+  const polylineStr = coords.join(' ');
+  const polygonStr = `0,${H} ${polylineStr} ${W},${H}`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="w-full h-full" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="grad-${color.replace('#','')}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.25" />
+        <stop offset="100%" stop-color="${color}" stop-opacity="0.0" />
+      </linearGradient>
+    </defs>
+    <polygon points="${polygonStr}" fill="url(#grad-${color.replace('#','')})" />
+    <polyline points="${polylineStr}" fill="none" stroke="${color}" stroke-width="2.5" vector-effect="non-scaling-stroke" opacity="0.9" />
   </svg>`;
 }
 
@@ -114,39 +126,39 @@ export function renderBanks() {
     const positive = displayBalance >= 0;
 
     return `
-      <div class="glass-panel card-hover rounded-[28px] p-6 relative overflow-hidden">
-        <div class="absolute inset-0 opacity-8" style="background:radial-gradient(circle at 80% 20%, ${color}, transparent 70%)"></div>
-        <div class="relative">
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl flex items-center justify-center" style="background:${color}22;border:1px solid ${color}44">
-                <i class="fa-solid fa-building-columns text-sm" style="color:${color}"></i>
-              </div>
-              <div>
-                <p class="font-bold text-white text-sm">${escapeHtml(bank.name)}</p>
-                <p class="text-xs text-white/45">● ${typeLabel}</p>
-              </div>
-            </div>
-            <div class="flex gap-1">
-              <button onclick="openEditBank('${bank.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-cyan-400/70 hover:bg-cyan-400/10 transition-colors" title="Editar">
-                <i class="fa-solid fa-pen text-xs"></i>
-              </button>
-              <button onclick="openDeleteBank('${bank.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-rose-400/60 hover:bg-rose-400/10 transition-colors" title="Excluir">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
+      <div class="glass-panel flex flex-col justify-between rounded-[24px] border border-white/10 p-6 relative overflow-hidden" style="min-height:260px;background:rgba(255,255,255,0.02)">
+        <div class="absolute inset-0 opacity-5" style="background:radial-gradient(circle at 80% 0%, ${color}, transparent 60%)"></div>
+        
+        <!-- Topo da Instituição Bancária (Fingu Style) -->
+        <div class="relative flex items-start justify-between">
+          <div>
+            <h3 class="text-xl font-bold text-white tracking-tight">${escapeHtml(bank.name)}</h3>
+            <p class="text-[11px] font-medium text-white/40 mt-0.5">${typeLabel}</p>
+            
+            <p class="text-[10px] uppercase tracking-widest text-white/35 mt-5 font-semibold">Saldo Atual</p>
+            <p class="text-[26px] font-black tracking-tighter ${positive ? 'text-white' : 'text-rose-400'} mt-0.5">${formatMoney(displayBalance)}</p>
           </div>
-
-          <div class="mb-3">
-            <p class="text-xs text-white/45 mb-0.5">Saldo Atual</p>
-            <p class="text-2xl font-black ${positive ? 'text-white' : 'text-rose-300'}">${formatMoney(displayBalance)}</p>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center opacity-80" style="background:${color}15;border:1px solid ${color}30">
+            <i class="fa-solid fa-building-columns text-[13px]" style="color:${color}"></i>
           </div>
+        </div>
 
-          <div class="h-7 mb-3">${sparkline(history, color)}</div>
-
-          <div class="flex justify-between text-xs text-white/35">
-            <span>${txCount} transaç${txCount !== 1 ? 'ões' : 'ão'}</span>
-            <span style="color:${color}">● Ativo</span>
+        <!-- Base do Card: Gráfico e Botões -->
+        <div class="relative mt-8">
+          <div class="relative w-full h-14 mb-2 -mx-2 px-2">
+             ${sparklineFilled(history, color)}
+             <div class="absolute bottom-1 inset-x-2 flex justify-between text-[9px] text-white/30 font-semibold px-2">
+               ${history.map(h => `<span>${h.label}</span>`).join('')}
+             </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/5 relative z-10">
+            <button onclick="openEditBank('${bank.id}')" class="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-white/5 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+              <i class="fa-solid fa-pen text-[9px]"></i> Editar
+            </button>
+            <button onclick="openDeleteBank('${bank.id}')" class="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all">
+              <i class="fa-solid fa-trash-can text-[9px]"></i> Excluir
+            </button>
           </div>
         </div>
       </div>`;

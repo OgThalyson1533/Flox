@@ -12,6 +12,7 @@ import { bindNavigationEvents, syncLocationHash, syncActiveViewLabel, switchTab 
 import { bindDashboardEvents, renderDashboard, renderHeaderMeta, renderReport, renderHomeWidgets } from './ui/dashboard-ui.js';
 import { renderCharts } from './ui/charts.js';
 import { bindTxEvents, renderTransactions } from './ui/transactions-ui.js';
+import { bindBankEvents } from './ui/banks-ui.js';
 import { bindGoalEvents, renderGoals } from './ui/goals-ui.js';
 import { bindCardEvents, renderCards } from './ui/cards-ui.js';
 import { bindCashflowEvents, renderCashflow } from './ui/cashflow-ui.js';
@@ -104,6 +105,7 @@ async function initApp() {
   bindNavigationEvents();
   bindDashboardEvents();
   bindTxEvents();
+  bindBankEvents();
   bindGoalEvents();
   bindCardEvents();
   bindCashflowEvents();
