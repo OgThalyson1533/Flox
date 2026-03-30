@@ -9,19 +9,19 @@ export const STORAGE_KEY = 'grokfin_hybrid_pwa_state';
 /** Índice → label de cada aba */
 export const NAV_LABELS = [
   'Home', 'Análise', 'Conta', 'Chat',
-  'Metas', 'Perfil', 'Cartões', 'Fluxo', 'Invest.', 'Mercado', 'Relatórios', 'Bancos'
+  'Metas', 'Perfil', 'Cartões', 'Fluxo', 'Invest.', 'Mercado', 'Relatórios'
 ];
 
 /** Índice → hash de URL de cada aba */
 export const NAV_HASHES = [
   'home', 'analise', 'conta', 'chat',
-  'metas', 'perfil', 'cartoes', 'fluxo', 'investimentos', 'mercado', 'relatorios', 'bancos'
+  'metas', 'perfil', 'cartoes', 'fluxo', 'investimentos', 'mercado', 'relatorios'
 ];
 
 /** Ícones FontAwesome de cada aba */
 export const NAV_ICONS = [
   'fa-house', 'fa-chart-pie', 'fa-credit-card', 'fa-comments',
-  'fa-bullseye', 'fa-user', 'fa-wallet', 'fa-water', 'fa-seedling', 'fa-globe', 'fa-chart-pie', 'fa-building-columns'
+  'fa-bullseye', 'fa-user', 'fa-wallet', 'fa-water', 'fa-seedling', 'fa-globe', 'fa-chart-pie'
 ];
 
 /** Quantidade de transações por página no extrato */

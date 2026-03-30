@@ -19,13 +19,6 @@ const getEnv = (key) => {
       if (key === 'SUPABASE_ANON_KEY') val = cfg.supabaseAnonKey;
     } catch(e) {}
   }
-  
-  // Fallbacks fornecidos pelo usuário
-  if (!val) {
-    if (key === 'SUPABASE_URL') val = 'https://gtvnucenyfeuoacbacif.supabase.co';
-    if (key === 'SUPABASE_ANON_KEY') val = 'sb_publishable_gA_rHDteQXa0B3FsshNRyw_9dvvClNs';
-  }
-  
   return val || '';
 };
 

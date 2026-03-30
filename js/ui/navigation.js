@@ -17,7 +17,6 @@ import { renderCashflow } from './cashflow-ui.js';
 import { renderInvestments, renderSimulator } from './investments-ui.js';
 import { renderMarketTab } from './market-ui.js';
 import { renderReports } from './reports-ui.js';
-import { renderBanks } from './banks-ui.js';
 
 export function syncActiveViewLabel(index = 0) {
   // FIX: HTML uses id="current-view-chip" (combined icon+text pill)
@@ -31,8 +30,8 @@ export function syncActiveViewLabel(index = 0) {
 
   const dot = document.getElementById('mais-active-dot');
   const maisBtn = document.getElementById('mais-btn');
-  // Tabs 5-11 não têm botão próprio → "Mais" deve ficar ativo para todas elas
-  const isMoreTab = index >= 5 && index <= 11;
+  // Tabs 5–10 não têm botão próprio → "Mais" deve ficar ativo para todas elas
+  const isMoreTab = index >= 5 && index <= 10;
   if (dot && maisBtn) {
     if (isMoreTab) {
       dot.classList.remove('hidden');
@@ -53,7 +52,7 @@ export function syncLocationHash(index) {
 }
 
 export function switchTab(index, { force = false, skipHistory = false } = {}) {
-  const target = clamp(Number(index) || 0, 0, 11);
+  const target = clamp(Number(index) || 0, 0, 10);
   if (!force && state.ui.activeTab === target) return;
 
   state.ui.activeTab = target;
@@ -78,7 +77,7 @@ export function switchTab(index, { force = false, skipHistory = false } = {}) {
   // Mapeamento corrigido para o novo bottom-nav de 4 botões (Home, Contas, Metas, Mais)
   // Os botões existentes no grid são: índice 0=Home(tab0), 1=Contas(tab2), 2=Metas(tab4), 3=Mais(tabs5-9)
   // Tabs sem botão próprio → destacam "Mais"
-  const legacyTabToBtn = { 0:0, 1:3, 2:1, 3:3, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:3, 11:3 };
+  const legacyTabToBtn = { 0:0, 1:3, 2:1, 3:3, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:3 };
   const legacyIdx = legacyTabToBtn[target] ?? 3;
   document.querySelectorAll('.bottom-nav-button').forEach((btn, i) => {
     const icon = btn.querySelector('i');
@@ -109,7 +108,6 @@ export function switchTab(index, { force = false, skipHistory = false } = {}) {
   if (target === 8) { requestAnimationFrame(renderInvestments); requestAnimationFrame(renderSimulator); }
   if (target === 9) requestAnimationFrame(() => renderMarketTab(false));
   if (target === 10) requestAnimationFrame(renderReports);
-  if (target === 11) requestAnimationFrame(renderBanks);
 }
 
 export function openSidebar() {

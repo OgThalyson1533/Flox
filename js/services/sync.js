@@ -27,7 +27,7 @@ export function cleanUUID(idStr) {
   if (idStr.length === 36 && idStr.split('-').length === 5) return idStr;
 
   let cleaned = idStr;
-  const knownPrefixes = ['tx-', 'goal-', 'card-', 'inv-', 'fx-', 'ctx-', 'msg-', 'bank-'];
+  const knownPrefixes = ['tx-', 'goal-', 'card-', 'inv-', 'fx-', 'ctx-', 'msg-'];
   for (const prefix of knownPrefixes) {
     if (cleaned.startsWith(prefix)) {
       cleaned = cleaned.slice(prefix.length);
@@ -119,16 +119,7 @@ export async function syncToSupabase(state) {
       installment_current: t.installmentCurrent || 1,
       // [FIX TX] Campos de observação e URL do anexo
       notes: t.notes || null,
-      attachment_url: t.attachmentUrl || null,
-      // [v3] Novos campos de integração
-      is_paid:          t.is_paid !== undefined ? t.is_paid : true,
-      account_type:     t.account_type || 'bank',
-      bank_id:          t.bank_id ? cleanUUID(t.bank_id) : null,
-      due_date:         t.due_date || null,
-      contact:          t.contact || null,
-      cost_center:      t.cost_center || null,
-      installment_type: t.installment_type || 'avista',
-      transaction_type: t.transaction_type || (t.value >= 0 ? 'entrada' : 'saida')
+      attachment_url: t.attachmentUrl || null
     }));
     tasks.push(upsertWithRetry('transactions', txRows));
   }
@@ -237,24 +228,6 @@ export async function syncToSupabase(state) {
     tasks.push(upsertWithRetry('custom_categories', catRows));
   }
 
-  // 9. Bancos (contas bancárias) [v3]
-  if (Array.isArray(state.banks) && hasChanged('banks', state.banks)) {
-    if (state.banks.length) {
-      const bankRows = state.banks.map(b => ({
-        id: cleanUUID(b.id),
-        user_id: uid,
-        name: b.name,
-        type: b.type || 'conta_corrente',
-        balance: b.balance || 0,
-        color: b.color || '#00f5ff'
-      }));
-      tasks.push(upsertWithRetry('banks', bankRows));
-    } else {
-      // Bancos locais estão vazios — não deletar remotos automaticamente (anti-perda de dados)
-      console.info('[Sync] Banks vazio localmente — skip delete remoto.');
-    }
-  }
-
   if (!tasks.length) {
     console.info('[Sync] Sem mudanças — skip.');
     return;
@@ -288,8 +261,7 @@ export async function syncFromSupabase(state) {
       { data: cards },
       { data: invoices },
       { data: invs },
-      { data: customCats },
-      { data: banks }
+      { data: customCats }
     ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
       supabase.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }),
@@ -299,8 +271,7 @@ export async function syncFromSupabase(state) {
       supabase.from('cards').select('*').eq('user_id', uid),
       supabase.from('card_invoices').select('*').eq('user_id', uid),
       supabase.from('investments').select('*').eq('user_id', uid),
-      supabase.from('custom_categories').select('name').eq('user_id', uid),
-      supabase.from('banks').select('*').eq('user_id', uid)
+      supabase.from('custom_categories').select('name').eq('user_id', uid)
     ]);
 
     // Perfil
@@ -336,19 +307,10 @@ export async function syncFromSupabase(state) {
           installmentCurrent: t.installment_current,
           // [FIX TX] Mapeamento dos novos campos vindos do banco
           notes: t.notes || null,
-          attachmentUrl: t.attachment_url || null,
-          // [v3] Novos campos
-          is_paid:          t.is_paid !== undefined ? t.is_paid : true,
-          account_type:     t.account_type || 'bank',
-          bank_id:          t.bank_id || null,
-          due_date:         t.due_date || null,
-          contact:          t.contact || null,
-          cost_center:      t.cost_center || null,
-          installment_type: t.installment_type || 'avista',
-          transaction_type: t.transaction_type || (Number(t.amount) >= 0 ? 'entrada' : 'saida')
+          attachmentUrl: t.attachment_url || null
         };
       });
-      state.balance = state.transactions.filter(t => t.is_paid).reduce((acc, t) => acc + t.value, 0);
+      state.balance = state.transactions.reduce((acc, t) => acc + t.value, 0);
     } else {
       state.transactions = [];
       state.balance = 0;
@@ -407,22 +369,10 @@ export async function syncFromSupabase(state) {
       state.customCategories = customCats.map(r => r.name);
     }
 
-    // Bancos (contas bancárias) [v3]
-    state.banks = banks?.length
-      ? banks.map(b => ({
-          id: b.id,
-          name: b.name,
-          type: b.type || 'conta_corrente',
-          balance: Number(b.balance),
-          color: b.color || '#00f5ff',
-          created_at: b.created_at
-        }))
-      : [];
-
     state.isNewUser = !isOnboardingCompleted && !txs?.length && !goals?.length;
 
     // Popula cache de hash para evitar re-sync imediato após pull
-    ['transactions', 'goals', 'cards', 'banks', 'investments', 'fixedExpenses'].forEach(k => {
+    ['transactions', 'goals', 'cards', 'investments', 'fixedExpenses'].forEach(k => {
       _lastSyncHash[k] = quickHash(state[k]);
     });
 

@@ -89,7 +89,6 @@ export function buildSeedState() {
     },
     // [FIX] Novos usuários começam com dados ZERADOS.
     // Dados de demonstração não devem aparecer no primeiro acesso real.
-    banks: [],
     cards: [],
     investments: [],
     fixedExpenses: [],
@@ -107,10 +106,10 @@ export function buildSeedState() {
       handle: '@grokfin.user'
     },
     transactions: [
-      { id: uid('tx'), date: formatDateBR(today), desc: 'Pendência', cat: 'Alimentação', value: -500.00, payment: 'conta', notes: 'Feijão', is_paid: false, account_type: 'bank', transaction_type: 'saida' },
-      { id: uid('tx'), date: formatDateBR(addDays(today, -1)), desc: 'Aluguel', cat: 'Moradia', value: -1500.00, payment: 'conta', is_paid: true, account_type: 'bank', transaction_type: 'saida' },
-      { id: uid('tx'), date: formatDateBR(addDays(today, -3)), desc: 'Supermercado', cat: 'Alimentação', value: -450.00, payment: 'cartao_credito', is_paid: true, account_type: 'credit_card', transaction_type: 'saida' },
-      { id: uid('tx'), date: formatDateBR(addDays(today, -5)), desc: 'Salário', cat: 'Receita', value: 4000.00, payment: 'conta', is_paid: true, account_type: 'bank', transaction_type: 'entrada' }
+      { id: uid('tx'), date: formatDateBR(today), desc: 'Pendência', cat: 'Alimentação', value: -500.00, payment: 'conta', notes: 'Feijão' },
+      { id: uid('tx'), date: formatDateBR(addDays(today, -1)), desc: 'Aluguel', cat: 'Moradia', value: -1500.00, payment: 'conta' },
+      { id: uid('tx'), date: formatDateBR(addDays(today, -3)), desc: 'Supermercado', cat: 'Alimentação', value: -450.00, payment: 'cartao_credito' },
+      { id: uid('tx'), date: formatDateBR(addDays(today, -5)), desc: 'Salário', cat: 'Receita', value: 4000.00, payment: 'conta' }
     ],
     customCategories: [], // categorias criadas pelo usuário — persistidas por conta
     ui: { txSearch: '', txCategory: 'all', txSort: 'date-desc', txDateStart: null, txDateEnd: null, txPage: 0, txPageSize: 10, activeTab: 0, homeFilter: 'this_month' },
@@ -162,7 +161,6 @@ export function loadState() {
       profile:      { ...seed.profile,      ...(saved.profile     || {}) },
       transactions: Array.isArray(saved.transactions) && saved.transactions.length ? saved.transactions : seed.transactions,
       customCategories: Array.isArray(saved.customCategories) ? saved.customCategories : [],
-      banks:        Array.isArray(saved.banks)        ? saved.banks        : seed.banks,
       cards:        Array.isArray(saved.cards)        ? saved.cards        : seed.cards,
       investments:  Array.isArray(saved.investments)  ? saved.investments  : seed.investments,
       fixedExpenses:Array.isArray(saved.fixedExpenses)? saved.fixedExpenses: seed.fixedExpenses,
