@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com cdn.tailwindcss.com 'unsafe-inline'; connect-src 'self' *.supabase.co economia.awesomeapi.com.br api.coingecko.com fonts.googleapis.com api.anthropic.com generativelanguage.googleapis.com https://api.unsplash.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com; font-src fonts.gstatic.com cdnjs.cloudflare.com; img-src 'self' data: blob: https://images.unsplash.com;">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <title>Flox — Acesso Seguro</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./Icon.png">
+  <link rel="shortcut icon" type="image/png" href="./Icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./Icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-1: #09252e;
+      --bg-2: #0d3a45;
+      --bg-3: #05171c;
+      --text: #eef6ff;
+      --muted: rgba(238,246,255,0.72);
+      --line: rgba(255,255,255,0.14);
+      --glass: rgba(255,255,255,0.08);
+      --accent: #8ddaf0;
+      --accent-2: #9ab8ff;
+      --success: #78f0c3;
+      --danger: #ff8f8f;
+      --shadow: 0 32px 80px rgba(0,0,0,0.45);
+      --radius-xl: 28px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      font-family: 'Google Sans', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 50% 20%, var(--bg-2) 0%, var(--bg-1) 38%, var(--bg-3) 72%, #010607 100%);
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient,
+    .ambient::before,
+    .ambient::after {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+    }
+
+    .ambient {
+      z-index: 1;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(98,198,224,0.12), transparent 24%),
+        radial-gradient(circle at 85% 15%, rgba(154,184,255,0.09), transparent 20%),
+        radial-gradient(circle at 50% 80%, rgba(60,130,160,0.12), transparent 24%);
+      filter: blur(4px);
+    }
+
+    .ambient::before {
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent 28%, transparent 72%, rgba(255,255,255,0.03));
+      opacity: .7;
+    }
+
+    .ambient::after {
+      background-image:
+        radial-gradient(rgba(255,255,255,.35) 0.7px, transparent 0.8px),
+        radial-gradient(rgba(170,225,235,.12) 0.5px, transparent 0.6px);
+      background-size: 160px 160px, 220px 220px;
+      background-position: 0 0, 40px 70px;
+      opacity: .12;
+    }
+
+    /* ── Card principal ─────────────────────────────────────────── */
+    .card {
+      position: relative;
+      z-index: 2;
+      width: min(520px, 100%);
+      border-radius: var(--radius-xl);
+      background: var(--glass);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--line);
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        inset 0 -1px 0 rgba(255,255,255,0.06);
+      overflow: hidden;
+      animation: cardIn .55s cubic-bezier(.22,.68,0,1.08) both;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 42%, rgba(255,255,255,0.05) 100%);
+      opacity: .72;
+      pointer-events: none;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(22px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .card-header {
+      padding: 28px 28px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.09);
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-badge {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.13);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+      color: var(--accent);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .header-status {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: rgba(238,246,255,.82);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .header-status i {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(120,240,195,.65);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* ── Body ────────────────────────────────────────────────────── */
+    .card-body {
+      padding: 22px 28px 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Banner ──────────────────────────────────────────────────── */
+    .banner {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(120,240,195,.08);
+      border: 1px solid rgba(120,240,195,.18);
+      font-size: 12px;
+      color: rgba(220,255,242,.88);
+    }
+    .banner.show  { display: flex; }
+    .banner.error {
+      background: rgba(255,120,120,.08);
+      border-color: rgba(255,140,140,.18);
+      color: rgba(255,220,220,.88);
+    }
+
+    /* ── Tabs ────────────────────────────────────────────────────── */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .tab-btn {
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: rgba(238,246,255,.75);
+      border-radius: 14px;
+      padding: 11px 10px;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .22s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tab-btn i { font-size: 10px; }
+
+    .tab-btn:hover,
+    .tab-btn.active {
+      background: rgba(255,255,255,0.12);
+      color: white;
+      box-shadow: 0 8px 24px rgba(0,0,0,.16);
+      transform: translateY(-1px);
+    }
+
+    /* ── Tab panels ──────────────────────────────────────────────── */
+    .tab-panel {
+      display: none;
+      animation: panelIn .28s ease both;
+    }
+    .tab-panel.active { display: block; }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Form ────────────────────────────────────────────────────── */
+    .fields { display: flex; flex-direction: column; gap: 13px; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+
+    label {
+      font-size: 12px;
+      color: rgba(238,246,255,.72);
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.07);
+      color: white;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: .2s ease;
+    }
+
+    textarea { min-height: 80px; resize: vertical; }
+
+    input::placeholder, textarea::placeholder {
+      color: rgba(238,246,255,.35);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(141,218,240,.5);
+      box-shadow: 0 0 0 4px rgba(141,218,240,.10);
+      background: rgba(255,255,255,0.09);
+    }
+
+    select { cursor: pointer; }
+    select option { background: #0d2a33; }
+
+    /* Input com ícone sufixo */
+    .input-wrap { position: relative; }
+    .input-wrap input { padding-right: 42px; }
+    .input-suffix {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer;
+      color: rgba(238,246,255,.38);
+      font-size: 12px;
+      padding: 2px;
+      transition: color .18s;
+    }
+    .input-suffix:hover { color: var(--accent); }
+
+    .hint {
+      font-size: 11px;
+      color: rgba(238,246,255,.44);
+      line-height: 1.45;
+    }
+    .hint a { color: var(--accent); text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
+
+    /* ── Divider ─────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
+      margin: 18px 0;
+    }
+
+    /* ── Checkboxes ──────────────────────────────────────────────── */
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(238,246,255,.80);
+      cursor: pointer;
+    }
+    .check input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--accent);
+      padding: 0; box-shadow: none; cursor: pointer;
+    }
+
+    /* ── Actions ─────────────────────────────────────────────────── */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+      color: white;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .22s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn i { font-size: 11px; }
+    .btn:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.13);
+      box-shadow: 0 12px 28px rgba(0,0,0,.20);
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(141,218,240,.22), rgba(154,184,255,.22));
+      border-color: rgba(170,225,235,.30);
+    }
+    .btn-danger {
+      background: rgba(255,120,120,.09);
+      border-color: rgba(255,140,140,.22);
+    }
+
+    /* Ripple */
+    .ripple-dot {
+      position: absolute; border-radius: 50%;
+      width: 56px; height: 56px; margin: -28px;
+      background: rgba(255,255,255,.16);
+      pointer-events: none;
+      animation: rippleOut .48s ease forwards;
+    }
+    @keyframes rippleOut {
+      from { transform: scale(0); opacity: .4; }
+      to   { transform: scale(4); opacity: 0; }
+    }
+
+    /* ── Footer box ──────────────────────────────────────────────── */
+    .footer-box {
+      margin-top: 16px;
+      padding: 14px 15px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,.07);
+      color: rgba(238,246,255,.68);
+      font-size: 11.5px;
+      line-height: 1.65;
+    }
+    .footer-box code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #cbf6ff;
+      background: rgba(255,255,255,.07);
+      padding: 2px 6px;
+      border-radius: 7px;
+      font-size: 10.5px;
+    }
+
+    /* ── Provider grid ───────────────────────────────────────────── */
+    .prov-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-bottom: 15px;
+    }
+
+    .prov-card {
+      padding: 13px 8px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: .22s ease;
+      position: relative;
+    }
+    .prov-card:hover { background: rgba(255,255,255,0.09); transform: translateY(-1px); }
+    .prov-card.active {
+      background: rgba(141,218,240,.09);
+      border-color: rgba(141,218,240,.28);
+      box-shadow: 0 0 0 1px rgba(141,218,240,.10);
+    }
+
+    .prov-check {
+      display: none;
+      position: absolute;
+      top: 7px; right: 7px;
+      width: 15px; height: 15px;
+      background: var(--accent);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-size: 7px;
+      color: #05171c;
+    }
+    .prov-card.active .prov-check { display: flex; }
+
+    .prov-icon {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.09);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      color: rgba(238,246,255,.70);
+    }
+    .prov-name {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: rgba(238,246,255,.65);
+    }
+    .prov-card.active .prov-name { color: var(--text); }
+
+    .ai-fields { display: none; }
+    .ai-fields.show { display: flex; flex-direction: column; gap: 13px; }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 560px) {
+      body { padding: 16px 12px; align-items: flex-start; }
+      .card { border-radius: 22px; }
+      .card-header, .card-body { padding-left: 20px; padding-right: 20px; }
+      .header-status { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="starfield" aria-hidden="true"></canvas>
+  <div class="ambient"></div>
+
+  <div class="card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="brand">
+        <div class="brand-badge" style="background:transparent;border:none;padding:0;">
+          <img src="./Icon.png" alt="Flox" style="width:46px;height:46px;object-fit:contain;">
+        </div>
+        <div class="brand-text">
+          <strong>Flox</strong>
+          <span>Painel financeiro com IA &middot; Acesso seguro</span>
+        </div>
+        <div class="header-status">
+          <i></i> RLS ativo
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+
+      <!-- Banner -->
+      <div id="banner" class="banner">
+        <i class="fa-solid fa-circle-check" id="banner-icon" style="flex-shrink:0;font-size:12px"></i>
+        <span id="banner-msg"></span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="login"    type="button">
+          <i class="fa-solid fa-lock"></i> Login
+        </button>
+        <button class="tab-btn" data-tab="supabase" type="button">
+          <i class="fa-solid fa-database"></i> Supabase
+        </button>
+        <button class="tab-btn" data-tab="ia" type="button">
+          <i class="fa-solid fa-robot"></i> IA
+        </button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <!-- TAB LOGIN                                                  -->
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <section id="tab-login" class="tab-panel active">
+        <div class="fields">
+
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" type="email" placeholder="seuemail@empresa.com" autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <label for="password">Senha</label>
+            <div class="input-wrap">
+              <input id="password" type="password" placeholder="Digite sua senha" autocomplete="current-password" />
+              <button type="button" class="input-suffix" id="eye-pw">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="remember">Sessão</label>
+            <select id="remember">
+              <option value="session">Somente nesta sessão</option>
+              <option value="local">Manter conectado</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="checks" style="margin-top:14px">
+          <label class="check">
+            <input id="magicLink" type="checkbox" /> Login por link mágico
+          </label>
+          <label class="check">
+            <input id="twoFactor" type="checkbox" /> Aviso de 2FA
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="btnLogin" type="button">
+            <i class="fa-solid fa-right-to-bracket"></i> Entrar
+          </button>
+          <button class="btn" id="btnMagic" type="button">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Link mágico
+          </button>
+          <button class="btn" id="btnRecovery" type="button">
+            <i class="fa-solid fa-key"></i> Recuperar senha
+          </button>
+        </div>
+
+        <div class="footer-box">
+          Integre com <code>supabase.auth.signInWithPassword()</code>,
+          <code>signInWithOtp()</code> e
+          <code>resetPasswordForEmail()</code> para autenticar de verdade.
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <!-- TAB SUPABASE                                               -->
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <section id="tab-supabase" class="tab-panel">
+        <div class="fields">
+
+          <div class="field">
+            <label for="supabaseUrl">Project URL</label>
+            <input id="supabaseUrl" type="url" placeholder="https://xxxx.supabase.co" />
+            <div class="hint">
+              <a href="https://app.supabase.com" target="_blank">app.supabase.com</a>
+              → Project Settings → API → Project URL
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="supabaseAnonKey">Anon Public Key</label>
+            <div class="input-wrap">
+              <input id="supabaseAnonKey" type="text" placeholder="eyJhbGci…"
+                style="font-family:ui-monospace,monospace;font-size:12.5px" />
+              <button type="button" class="input-suffix" id="copy-anon" title="Copiar">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </div>
+            <div class="hint">Chave pública — pode ser usada no frontend com segurança.</div>
+          </div>
+
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="checks">
+          <label class="check"><input id="enableRls"      type="checkbox" checked /> RLS ativo</label>
+          <label class="check"><input id="enableRealtime" type="checkbox" checked /> Realtime</label>
+          <label class="check"><input id="enableStorage"  type="checkbox" checked /> Storage</label>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="btnSaveSupabase" type="button">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar
+          </button>
+          <button class="btn" id="btnTestSupabase" type="button">
+            <i class="fa-solid fa-plug" id="test-icon"></i>
+            <span id="test-label">Testar conexão</span>
+          </button>
+        </div>
+
+        <div class="footer-box">
+          Inicialização: <code>supabase.createClient(url, anonKey)</code>
+        </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <!-- TAB IA                                                     -->
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <section id="tab-ia" class="tab-panel">
+
+        <div class="prov-grid" role="group" aria-label="Provedor de IA">
+
+          <div class="prov-card" data-prov="claude" tabindex="0">
+            <div class="prov-check"><i class="fa-solid fa-check"></i></div>
+            <div class="prov-icon">
+              <svg width="15" height="15" viewBox="0 0 48 48" fill="currentColor">
+                <path d="M30.5 8L40 24L30.5 40H17.5L8 24L17.5 8H30.5Z" opacity=".85"/>
+              </svg>
+            </div>
+            <span class="prov-name">Claude</span>
+          </div>
+
+          <div class="prov-card" data-prov="gemini" tabindex="0">
+            <div class="prov-check"><i class="fa-solid fa-check"></i></div>
+            <div class="prov-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+            </div>
+            <span class="prov-name">Gemini</span>
+          </div>
+
+          <div class="prov-card" data-prov="openai" tabindex="0">
+            <div class="prov-check"><i class="fa-solid fa-check"></i></div>
+            <div class="prov-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22.3 9.8a6 6 0 0 0-.5-4.9A6 6 0 0 0 15.3 2 6 6 0 0 0 4.9 4.2 6 6 0 0 0 .9 7.1a6 6 0 0 0 .7 7.1 6 6 0 0 0 .5 4.9 6 6 0 0 0 6.5 2.9A6 6 0 0 0 13 24a6 6 0 0 0 5.7-4.2 6 6 0 0 0 4-2.9 6 6 0 0 0-.4-7.1z"/>
+              </svg>
+            </div>
+            <span class="prov-name">ChatGPT</span>
+          </div>
+
+        </div>
+
+        <!-- Claude -->
+        <div id="ai-claude" class="ai-fields">
+          <div class="field">
+            <label for="claudeKey">Anthropic API Key</label>
+            <div class="input-wrap">
+              <input id="claudeKey" type="password" placeholder="sk-ant-api03-…"
+                style="font-family:ui-monospace,monospace;font-size:12.5px" />
+              <button type="button" class="input-suffix ai-eye" data-t="claudeKey">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div class="hint">
+              <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+              — em produção, use Edge Function.
+            </div>
+          </div>
+          <div class="field">
+            <label for="claudeModel">Modelo</label>
+            <select id="claudeModel">
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 — Econômico ✅</option>
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6 — Balanceado</option>
+              <option value="claude-opus-4-6">claude-opus-4-6 — Avançado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Gemini -->
+        <div id="ai-gemini" class="ai-fields">
+          <div class="field">
+            <label for="geminiKey">Google AI API Key</label>
+            <div class="input-wrap">
+              <input id="geminiKey" type="password" placeholder="AIzaSy…"
+                style="font-family:ui-monospace,monospace;font-size:12.5px" />
+              <button type="button" class="input-suffix ai-eye" data-t="geminiKey">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div class="hint">
+              Gratuito em
+              <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a>.
+            </div>
+          </div>
+          <div class="field">
+            <label for="geminiModel">Modelo</label>
+            <select id="geminiModel">
+              <option value="gemini-2.0-flash">gemini-2.0-flash — Gratuito ✅</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro — Avançado</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash — Ultra-rápido</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- OpenAI -->
+        <div id="ai-openai" class="ai-fields">
+          <div class="field">
+            <label for="openaiKey">OpenAI API Key</label>
+            <div class="input-wrap">
+              <input id="openaiKey" type="password" placeholder="sk-proj-…"
+                style="font-family:ui-monospace,monospace;font-size:12.5px" />
+              <button type="button" class="input-suffix ai-eye" data-t="openaiKey">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div class="hint">
+              <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>.
+            </div>
+          </div>
+          <div class="field">
+            <label for="openaiModel">Modelo</label>
+            <select id="openaiModel">
+              <option value="gpt-4o-mini">gpt-4o-mini — Econômico ✅</option>
+              <option value="gpt-4o">gpt-4o — Avançado</option>
+              <option value="gpt-4-turbo">gpt-4-turbo — Potente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="btnSaveAi" type="button">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar IA
+          </button>
+          <button class="btn btn-danger" id="btnClearAll" type="button">
+            <i class="fa-solid fa-trash-can"></i> Limpar tudo
+          </button>
+        </div>
+
+        <div class="footer-box">
+          Em produção, nunca exponha a chave no browser. Configure via CLI:<br>
+          <code>supabase secrets set ANTHROPIC_API_KEY=sk-ant-…</code>
+        </div>
+
+      </section>
+
+    </div><!-- /card-body -->
+  </div><!-- /card -->
+
+  <script>
+  (() => {
+    // ── Tabs ─────────────────────────────────────────────────────
+    const tabs   = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    function setTab(name) {
+      tabs.forEach(b   => b.classList.toggle('active', b.dataset.tab === name));
+      panels.forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+    }
+    tabs.forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+    // ── Banner ────────────────────────────────────────────────────
+    const bannerEl  = document.getElementById('banner');
+    const bannerMsg = document.getElementById('banner-msg');
+    const bannerIco = document.getElementById('banner-icon');
+
+    function showBanner(msg, type = 'success') {
+      bannerMsg.textContent = msg;
+      bannerEl.className  = 'banner show' + (type === 'error' ? ' error' : '');
+      bannerIco.className = (type === 'error'
+        ? 'fa-solid fa-circle-xmark'
+        : 'fa-solid fa-circle-check') + ' flex-shrink:0';
+      bannerIco.style.cssText = 'flex-shrink:0;font-size:12px';
+      clearTimeout(showBanner._t);
+      showBanner._t = setTimeout(() => { bannerEl.className = 'banner'; }, 3500);
+    }
+
+    // ── Toggle password ───────────────────────────────────────────
+    function bindEye(btn, inputId) {
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const el   = document.getElementById(inputId);
+        const show = el.type === 'password';
+        el.type = show ? 'text' : 'password';
+        btn.querySelector('i').className = `fa-solid fa-eye${show ? '-slash' : ''}`;
+      });
+    }
+    bindEye(document.getElementById('eye-pw'), 'password');
+    document.querySelectorAll('.ai-eye').forEach(b =>
+      bindEye(b, b.dataset.t)
+    );
+
+    // ── Copy anon key ─────────────────────────────────────────────
+    document.getElementById('copy-anon').addEventListener('click', function() {
+      const val = document.getElementById('supabaseAnonKey').value.trim();
+      if (!val) return;
+      navigator.clipboard?.writeText(val).then(() => {
+        const ic = this.querySelector('i');
+        ic.className = 'fa-solid fa-check';
+        ic.style.color = 'var(--success)';
+        setTimeout(() => { ic.className = 'fa-solid fa-copy'; ic.style.color = ''; }, 1800);
+      });
+    });
+
+    // ── Ripple ─────────────────────────────────────────────────────
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const r = this.getBoundingClientRect();
+        const d = document.createElement('span');
+        d.className = 'ripple-dot';
+        d.style.left = (e.clientX - r.left) + 'px';
+        d.style.top  = (e.clientY - r.top)  + 'px';
+        this.appendChild(d);
+        setTimeout(() => d.remove(), 500);
+      });
+    });
+
+    // ── Persistência ──────────────────────────────────────────────
+    const SK = 'grokfin-cfg';
+    const FIELDS = [
+      'email','password','remember','magicLink','twoFactor',
+      'supabaseUrl','supabaseAnonKey','enableRls','enableRealtime','enableStorage',
+      'claudeKey','claudeModel','geminiKey','geminiModel','openaiKey','openaiModel'
+    ];
+
+    function r(id) {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      return el.type === 'checkbox' ? el.checked : el.value;
+    }
+    function w(id, val) {
+      const el = document.getElementById(id);
+      if (!el || val == null) return;
+      if (el.type === 'checkbox') el.checked = Boolean(val);
+      else el.value = val;
+    }
+
+    function persist() {
+      const cfg = FIELDS.reduce((a, id) => { a[id] = r(id); return a; }, {});
+      cfg._prov = _prov;
+      localStorage.setItem(SK, JSON.stringify(cfg));
+    }
+
+    function hydrate() {
+      try {
+        const s = JSON.parse(localStorage.getItem(SK) || '{}');
+        FIELDS.forEach(id => w(id, s[id]));
+        if (s._prov) selProv(s._prov, false);
+      } catch(_) {}
+    }
+
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input',  persist);
+      el.addEventListener('change', persist);
+    });
+
+    // ── Provider ──────────────────────────────────────────────────
+    let _prov = null;
+
+    function selProv(name, save = true) {
+      _prov = name;
+      document.querySelectorAll('.prov-card').forEach(c =>
+        c.classList.toggle('active', c.dataset.prov === name)
+      );
+      document.querySelectorAll('.ai-fields').forEach(el => el.classList.remove('show'));
+      document.getElementById('ai-' + name)?.classList.add('show');
+      if (save) persist();
+    }
+
+    document.querySelectorAll('.prov-card').forEach(c => {
+      c.addEventListener('click', () => selProv(c.dataset.prov));
+      c.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') selProv(c.dataset.prov);
+      });
+    });
+
+    // ── Login ─────────────────────────────────────────────────────
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+      const email = r('email'), pw = r('password');
+      if (!email || !pw) { showBanner('Preencha e-mail e senha.', 'error'); return; }
+
+      const url  = r('supabaseUrl');
+      const anon = r('supabaseAnonKey');
+      if (!url || !anon) {
+        showBanner('Configure o Supabase antes de entrar.', 'error');
+        setTab('supabase'); return;
+      }
+
+      const btn = document.getElementById('btnLogin');
+      btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Entrando…';
+      btn.disabled  = true;
+
+      try {
+        const client = supabase.createClient(url, anon);
+        const { error } = await client.auth.signInWithPassword({ email, password: pw });
+        if (error) throw error;
+        persist();
+        showBanner('Login realizado! Redirecionando…');
+        setTimeout(() => window.location.replace('./app.html'), 1000);
+      } catch(err) {
+        const MAP = {
+          'Invalid login credentials': 'E-mail ou senha incorretos.',
+          'Email not confirmed':        'Confirme seu e-mail antes de entrar.',
+        };
+        const m = Object.entries(MAP).find(([k]) => err.message?.includes(k));
+        showBanner(m ? m[1] : 'Erro: ' + err.message, 'error');
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
+        btn.disabled  = false;
+      }
+    });
+
+    document.getElementById('btnMagic').addEventListener('click', async () => {
+      const email = r('email');
+      if (!email) { showBanner('Informe o e-mail para receber o link.', 'error'); return; }
+      const url  = r('supabaseUrl');
+      const anon = r('supabaseAnonKey');
+      if (!url || !anon) { showBanner('Configure o Supabase antes.', 'error'); setTab('supabase'); return; }
+
+      const btn = document.getElementById('btnMagic');
+      btn.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Enviando…';
+      btn.disabled  = true;
+      try {
+        const { error } = await supabase.createClient(url, anon).auth.signInWithOtp({ email });
+        if (error) throw error;
+        showBanner('Link enviado! Verifique sua caixa de entrada.');
+      } catch(err) {
+        showBanner('Erro: ' + err.message, 'error');
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Link mágico';
+        btn.disabled  = false;
+      }
+    });
+
+    document.getElementById('btnRecovery').addEventListener('click', () => {
+      if (!r('email')) { showBanner('Informe o e-mail antes.', 'error'); return; }
+      showBanner('Integre com resetPasswordForEmail() para produção.');
+    });
+
+    // ── Supabase ──────────────────────────────────────────────────
+    document.getElementById('btnSaveSupabase').addEventListener('click', () => {
+      persist();
+      showBanner('Configurações do Supabase salvas.');
+    });
+
+    document.getElementById('btnTestSupabase').addEventListener('click', async () => {
+      const url  = r('supabaseUrl');
+      const anon = r('supabaseAnonKey');
+      if (!url || !anon) { showBanner('Preencha URL e Anon Key para testar.', 'error'); return; }
+
+      const btn   = document.getElementById('btnTestSupabase');
+      const icon  = document.getElementById('test-icon');
+      const label = document.getElementById('test-label');
+      btn.disabled = true;
+      icon.className  = 'fa-solid fa-rotate fa-spin';
+      label.textContent = 'Testando…';
+
+      try {
+        const res = await fetch(url.replace(/\/$/, '') + '/rest/v1/', {
+          headers: { apikey: anon, Authorization: 'Bearer ' + anon }
+        });
+        if (res.ok || res.status === 404 || res.status === 200) {
+          showBanner('Supabase respondeu. Conexão validada.');
+        } else {
+          showBanner('Status ' + res.status + '.', 'error');
+        }
+      } catch(err) {
+        showBanner('Falha: ' + err.message, 'error');
+      } finally {
+        btn.disabled      = false;
+        icon.className    = 'fa-solid fa-plug';
+        label.textContent = 'Testar conexão';
+      }
+    });
+
+    // ── IA ────────────────────────────────────────────────────────
+    document.getElementById('btnSaveAi').addEventListener('click', () => {
+      if (!_prov) { showBanner('Selecione um provedor de IA.', 'error'); return; }
+      persist();
+      const key = r({ claude:'claudeKey', gemini:'geminiKey', openai:'openaiKey' }[_prov]);
+      showBanner(key
+        ? `${_prov} configurado. Use Edge Function em produção.`
+        : `Provedor ${_prov} selecionado.`
+      );
+    });
+
+    document.getElementById('btnClearAll').addEventListener('click', () => {
+      localStorage.removeItem(SK);
+      FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = false;
+        else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+        else el.value = '';
+      });
+      ['enableRls','enableRealtime','enableStorage'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = true;
+      });
+      _prov = null;
+      document.querySelectorAll('.prov-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.ai-fields').forEach(el => el.classList.remove('show'));
+      showBanner('Tudo limpo e resetado.');
+    });
+
+    hydrate();
+
+    async function checkSession() {
+      const url = r('supabaseUrl');
+      const anon = r('supabaseAnonKey');
+      if (!url || !anon) return;
+      try {
+        const client = window.supabase.createClient(url, anon);
+        const { data } = await client.auth.getSession();
+        if (data?.session) {
+          window.location.replace('./app.html');
+        }
+      } catch (err) {
+        console.warn('Erro ao verificar sessão', err);
+      }
+    }
+    checkSession();
+
+    // ════════════════════════════════════════════════════════════
+    // STARFIELD — fiel ao modelo original
+    // ════════════════════════════════════════════════════════════
+    const canvas = document.getElementById('starfield');
+    const ctx    = canvas.getContext('2d', { alpha: true });
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let W = 0, H = 0, stars = [], nebulas = [];
+    const ptr = { x:-9999, y:-9999, tx:-9999, ty:-9999, on:false };
+
+    function rand(a,b) { return a + Math.random()*(b-a); }
+    function lerp(a,b,t) { return a+(b-a)*t; }
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio||1,2);
+      W = Math.floor(window.innerWidth*dpr);
+      H = Math.floor(window.innerHeight*dpr);
+      canvas.width  = W; canvas.height = H;
+      canvas.style.width  = window.innerWidth  + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      buildStars(); buildNebula();
+    }
+
+    function buildStars() {
+      const n = Math.floor((window.innerWidth * window.innerHeight) / 900);
+      stars = Array.from({length:n}, () => {
+        const l = Math.random();
+        return {
+          x: Math.random()*W, y: Math.random()*H,
+          r: l<.82 ? rand(.4,1.3)*dpr : l<.96 ? rand(1.2,2)*dpr : rand(2,3.2)*dpr,
+          a: rand(.15,.95), tw: rand(.0007,.008), p: rand(0,Math.PI*2),
+          tint: Math.random(), depth: rand(.15,1),
+          dx: rand(-.012,.012)*dpr, dy: rand(-.008,.008)*dpr
+        };
+      });
+    }
+
+    function buildNebula() {
+      const m = Math.min(W,H);
+      nebulas = Array.from({length:6}, () => ({
+        x: Math.random()*W, y: Math.random()*H,
+        r: rand(m*.16, m*.34),
+        a: rand(.016,.05),
+        hue: Math.random()<.75 ? 'teal' : 'violet'
+      }));
+    }
+
+    function drawNebula(t) {
+      for (const n of nebulas) {
+        const pulse = .82 + Math.sin(t*.00012 + n.x*.001)*.08;
+        const g = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+        if (n.hue==='teal') {
+          g.addColorStop(0,   `rgba(80,180,200,${n.a*pulse})`);
+          g.addColorStop(.45, `rgba(40,120,140,${n.a*.5*pulse})`);
+          g.addColorStop(1,   'rgba(0,0,0,0)');
+        } else {
+          g.addColorStop(0,   `rgba(110,100,220,${n.a*.7*pulse})`);
+          g.addColorStop(.45, `rgba(70,60,150,${n.a*.42*pulse})`);
+          g.addColorStop(1,   'rgba(0,0,0,0)');
+        }
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+      }
+    }
+
+    function drawStars(t) {
+      for (const s of stars) {
+        const flicker = .78 + Math.sin(t*s.tw + s.p)*.22;
+        const a = s.a*flicker;
+        const px = ptr.on ? (ptr.x-W*.5)*.006*s.depth : 0;
+        const py = ptr.on ? (ptr.y-H*.5)*.006*s.depth : 0;
+        const x  = s.x + px + Math.sin(t*.00008+s.p)*s.dx;
+        const y  = s.y + py + Math.cos(t*.00006+s.p)*s.dy;
+        const c  = s.tint<.70 ? `rgba(225,238,255,${a})` : s.tint<.92 ? `rgba(170,225,235,${a})` : `rgba(255,228,205,${a})`;
+        ctx.beginPath(); ctx.fillStyle = c; ctx.arc(x,y,s.r,0,Math.PI*2); ctx.fill();
+        if (s.r > 1.6*dpr) {
+          ctx.save(); ctx.globalAlpha = .08;
+          ctx.beginPath(); ctx.fillStyle = c; ctx.arc(x,y,s.r*2.4,0,Math.PI*2); ctx.fill();
+          ctx.restore();
+        }
+      }
+    }
+
+    function drawPtrGlow() {
+      if (!ptr.on) return;
+      const rad = Math.min(W,H)*.08;
+      const g = ctx.createRadialGradient(ptr.x,ptr.y,0,ptr.x,ptr.y,rad);
+      g.addColorStop(0,   'rgba(170,225,235,0.06)');
+      g.addColorStop(.42, 'rgba(80,170,190,0.03)');
+      g.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(ptr.x,ptr.y,rad,0,Math.PI*2); ctx.fill();
+    }
+
+    function render(t) {
+      ptr.x = lerp(ptr.x, ptr.tx, .08);
+      ptr.y = lerp(ptr.y, ptr.ty, .08);
+      ctx.clearRect(0,0,W,H);
+      drawNebula(t); drawPtrGlow(); drawStars(t);
+      requestAnimationFrame(render);
+    }
+
+    function setPtr(cx,cy) {
+      ptr.tx=cx*dpr; ptr.ty=cy*dpr;
+      if (!ptr.on) { ptr.x=ptr.tx; ptr.y=ptr.ty; }
+      ptr.on=true;
+    }
+
+    window.addEventListener('mousemove',  e => setPtr(e.clientX, e.clientY));
+    window.addEventListener('touchstart', e => { const t=e.touches[0]; if(t) setPtr(t.clientX,t.clientY); }, {passive:true});
+    window.addEventListener('touchmove',  e => { const t=e.touches[0]; if(t) setPtr(t.clientX,t.clientY); }, {passive:true});
+    window.addEventListener('mouseleave', () => { ptr.on=false; ptr.tx=-9999; ptr.ty=-9999; });
+    window.addEventListener('touchend',   () => { ptr.on=false; ptr.tx=-9999; ptr.ty=-9999; });
+    window.addEventListener('resize', resize);
+
+    resize();
+    requestAnimationFrame(render);
+
+  })();
+  </script>
+</body>
+</html>

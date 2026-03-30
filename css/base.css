@@ -1,0 +1,133 @@
+/* ── GrokFin Elite v6 · base.css ────────────────────────────────────────────
+   Variáveis, reset, body, animações, scrollbar.
+   ATENÇÃO: Não alterar valores de cores ou estilos — apenas extração.
+   ──────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-0: #06080f;
+  --bg-1: #0a0d16;
+  --bg-2: #111624;
+  --panel: rgba(255,255,255,.055);
+  --panel-strong: rgba(255,255,255,.075);
+  --line: rgba(255,255,255,.085);
+  --text-soft: rgba(255,255,255,.58);
+  --text-faint: rgba(255,255,255,.40);
+  --brand: #00f5ff;
+  --brand-2: #00ff85;
+  --violet: #a855f7;
+  --amber: #facc15;
+  --danger: #ff6685;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 15%, rgba(0,245,255,.10), transparent 25%),
+    radial-gradient(circle at 80% 0%, rgba(168,85,247,.12), transparent 22%),
+    radial-gradient(circle at 80% 85%, rgba(0,255,133,.08), transparent 25%),
+    linear-gradient(180deg, #0b0f1b 0%, #090c15 45%, #05070d 100%);
+  color: white;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black 30%, transparent 85%);
+  opacity: .25;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,.03); }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.14);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0,245,255,.36); }
+
+/* ── Animations ── */
+.tab-panel { display: none; }
+.tab-panel.active {
+  display: block;
+}
+
+/* ── Motion Design: Staggered Fade-in + Slide ── */
+.tab-panel.active > * {
+  opacity: 0;
+  animation: staggeredFade .5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.tab-panel.active > *:nth-child(1) { animation-delay: 0.05s; }
+.tab-panel.active > *:nth-child(2) { animation-delay: 0.10s; }
+.tab-panel.active > *:nth-child(3) { animation-delay: 0.15s; }
+.tab-panel.active > *:nth-child(4) { animation-delay: 0.20s; }
+.tab-panel.active > *:nth-child(5) { animation-delay: 0.25s; }
+.tab-panel.active > *:nth-child(6) { animation-delay: 0.30s; }
+.tab-panel.active > *:nth-child(7) { animation-delay: 0.35s; }
+.tab-panel.active > *:nth-child(8) { animation-delay: 0.40s; }
+.tab-panel.active > *:nth-child(n+9) { animation-delay: 0.45s; }
+
+@keyframes staggeredFade {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+  70% { transform: scale(1.02) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.typing-dot {
+  width: 7px; height: 7px;
+  border-radius: 999px;
+  background: var(--brand);
+  display: inline-block;
+  animation: typing 1.2s infinite ease-in-out both;
+  margin: 0 2px;
+}
+.typing-dot:nth-child(2) { animation-delay: .14s; }
+.typing-dot:nth-child(3) { animation-delay: .28s; }
+
+@keyframes typing {
+  0%, 80%, 100% { transform: translateY(0) scale(.45); opacity: .45; }
+  40%           { transform: translateY(-3px) scale(1); opacity: 1; }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Select option dark background fix ── */
+select option {
+  background: #0c111b;
+  color: white;
+}
+
+/* Remove white borders from Home cards */
+#tab-0 .border-white\/8,
+#tab-0 .border-white\/12,
+#tab-0 .border-white\/10 {
+  border-color: transparent !important;
+}
